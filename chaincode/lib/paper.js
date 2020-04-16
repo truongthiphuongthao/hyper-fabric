@@ -4,7 +4,7 @@
 
 'use strict';
 const { Contract } = require('fabric-contract-api');
-const assert = require('assert')
+/*const assert = require('assert')*/
 class Paper extends Contract {
 
     async initLedger(ctx) {
@@ -82,7 +82,25 @@ class Paper extends Contract {
         console.log(createPaper.toString())
         console.info('============= END : Create Paper ===========');
     }
-    async changeCarOwner(ctx, paperNumber, newOwner) {
+    async queryAllPapers(ctx) {
+        const startKey = 'PAPER0';
+        const endKey = 'PAPER999';
+        const allResults = [];
+        for await (const {key, value} of ctx.stub.getStateByRange(startKey, endKey)) {
+            const strValue = Buffer.from(value).toString('utf8');
+            let record;
+            try {
+                record = JSON.parse(strValue);
+            } catch (err) {
+                console.log(err);
+                record = strValue;
+            }
+            allResults.push({ Key: key, Record: record });
+        }
+        console.info(allResults);
+        return JSON.stringify(allResults);
+    }
+    async changePaperOwner(ctx, paperNumber, newOwner) {
         console.info('============= START : changePaperOwner ===========');
 
         const paperAsBytes = await ctx.stub.getState(paperNumber); // get the car from chaincode state
@@ -104,7 +122,9 @@ class Paper extends Contract {
       console.info('============= END : Delete Paper ===========');
    }
 }
-const { ChaincodeMockStub, Transform } = require("@theledger/fabric-mock-stub")
+  
+/*const { ChaincodeMockStub, Transform } = require("@theledger/fabric-mock-stub")
+if(require.main==module){
 let chaincode = new Paper()
 describe ('Test Mychaincode', () => {
     it("Should init without issues", async () => {
@@ -129,22 +149,22 @@ describe ('Test Mychaincode', () => {
             };
        assert.deepEqual(paperChangeResult, JSON.stringify(expectedChangeOwner))	
      const paperCreatePaper = await chaincode.createPaper({stub:mockStub},['PAPER10'],'CDKT','Hien')
-     /*const paperCreateResult = await chaincode.queryPaper({stub:mockStub},['PAPER10'])
+     const paperCreateResult = await chaincode.queryPaper({stub:mockStub},['PAPER10'])
       let expectedQueryCreate = {
                 name: 'CDKT',
                 owner: 'Hien',
                 docType: 'paper',	
             };
-       assert.deepEqual(paperCreateResult, JSON.stringify(expectedQueryCreate))*/
-       const paperDelete = await chaincode.deletePaper({stub:mockStub}, ['PAPER2'])
-       /*const paperDeleteResult = await chaincode.queryPaper({stub:mockStub},['PAPER2'])*/
-       /*let expectedDelete = {
+       assert.deepEqual(paperCreateResult, JSON.stringify(expectedQueryCreate))
+      /* const paperDelete = await chaincode.deletePaper({stub:mockStub}, ['PAPER2'])
+       const paperDeleteResult = await chaincode.queryPaper({stub:mockStub},['PAPER2'])
+       let expectedDelete = {
                 name: 'DHCT',
                 owner: 'Dang',
                 docType: 'paper',
 		
             };
-       assert.deepEqual(paperDeleteResult, JSON.stringify(expectedDelete))*/
+       assert.deepEqual(paperDeleteResult, JSON.stringify(expectedDelete))
        const paperCreatePaperSame = await chaincode.createPaper({stub:mockStub},['PAPER2'],'DHCT','Dang')
        const paperCreateResult = await chaincode.queryPaper({stub:mockStub},['PAPER2'])
       let expectedQueryCreate = {
@@ -152,7 +172,8 @@ describe ('Test Mychaincode', () => {
                 owner: 'Dang',
                 docType: 'paper',	
             };
-       assert.deepEqual(paperCreateResult, JSON.stringify(expectedQueryCreate))
-     });
+       assert.deepEqual(paperCreateResult, JSON.stringify(expectedQueryCreate))*/
+     /*});
 });
+}*/
 module.exports = Paper;
